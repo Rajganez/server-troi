@@ -197,8 +197,13 @@ export const editSingleData = async (req, res) => {
       return res.status(404).send({ msg: "User not found" });
     }
     const clientData = user.ClientData;
+    const otherClientsData = clientData.filter((val, index) => {
+      if (index !== Ind) {
+        return val;
+      }
+    });
     // Check if the contact already exists with the new email or phone
-    const contact = clientData.find(
+    const contact = otherClientsData.find(
       (list) => list.Email === Email || list.Phone === Phone
     );
     if (contact) {
@@ -243,3 +248,4 @@ export const deleteSingleData = async (req, res) => {
     return res.status(500).send({ msg: "Internal Server Error", error });
   }
 };
+
