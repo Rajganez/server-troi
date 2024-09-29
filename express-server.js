@@ -6,6 +6,7 @@ import cors from "cors";
 // import fs from "fs";
 import contactRouter from "./server/routes/contactsRoutes.js";
 import cookieParser from "cookie-parser";
+import emailRouters from "./server/routes/emailRoutes.js";
 // import path from "path";
 // import { fileURLToPath } from "url";
 
@@ -57,6 +58,7 @@ app.use(express.json());
 
 app.use("/auth", authRouters);
 app.use("/list", contactRouter);
+app.use("/email", emailRouters);
 
 const port = 3000;
 
