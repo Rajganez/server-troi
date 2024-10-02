@@ -1,13 +1,14 @@
 import { db } from "../DB/mongo-db.js";
 import dotenv from "dotenv";
-import { contactCollection } from "../controllers/contactsController.js";
+import { authCollection } from "../controllers/authController.js";
 import nodemailer from "nodemailer";
+import { ObjectId } from "mongodb";
 
 dotenv.config();
 
 export const emailCollection = db.collection("EmailCollection");
 
-const transporter = nodemailer.createTransport({
+export const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: "trueroiservices@gmail.com",
@@ -16,7 +17,7 @@ const transporter = nodemailer.createTransport({
   timeout: 30000,
 });
 
-const mailOptions = {
+export const mailOptions = {
   from: "trueroiservices@gmail.com",
 };
 
@@ -28,7 +29,9 @@ const generateEmailTemplate = (
   additionalMessage,
   contactMessage,
   signatureData,
-  recipientName
+  recipientName,
+  recipientEmail,
+  userId
 ) => {
   return `
   <!DOCTYPE html>
@@ -140,7 +143,8 @@ const generateEmailTemplate = (
                 >
                   &copy; 2024 TrueROI. All rights reserved.
                   <br />
-                  <a href="http://localhost:5173/" style="color: #4caf50"
+                  <a href="http://localhost:5173/unsubscribe?clientmail=${recipientEmail}&userid=${userId}" 
+                  target="_blank" style="color: #4caf50"
                     >Unsubscribe</a
                   >
                 </td>
@@ -168,21 +172,32 @@ export const sendEmail = async (req, res) => {
   } = req.body;
 
   try {
-    // Parse recipientMail if it's a string representation of an array of objects
+    const objectId = ObjectId.createFromHexString(userId);
     const recipients = JSON.parse(recipientMail);
     const recipientId = [];
+    const rejectedEmail = [];
     const date = new Date().toLocaleString(undefined, {
       timeZone: "Asia/Kolkata",
     });
-    const user = await contactCollection.findOne({ Id: userId });
+
+    const user = await authCollection.findOne({ _id: objectId });
+    const unsubscribe = await emailCollection.findOne({ Id: userId });
+
     if (!user) {
       return res.status(401).send({ msg: "User not found" });
     }
 
-    // Loop through each recipient and send a personalized email
+    const unsubscribedEmails = unsubscribe?.UnsubscribedMail || [];
+
+    // Loop through each recipient and send a personalized email if they are not unsubscribed
     for (const recipient of recipients) {
       const recipientName = Object.keys(recipient)[0];
       const recipientEmail = recipient[recipientName];
+
+      // Check if the recipient email is in the unsubscribed list
+      if (unsubscribedEmails.includes(recipientEmail)) {
+        continue; // Skip sending email to unsubscribed recipients
+      }
 
       // Prepare the email template with the dynamic data
       const htmlContent = generateEmailTemplate(
@@ -192,8 +207,11 @@ export const sendEmail = async (req, res) => {
         messageData.additionalMessage,
         messageData.contactMessage,
         signatureData,
-        recipientName
+        recipientName,
+        recipientEmail,
+        userId
       );
+
       // Send the email using Nodemailer
       const mailStatus = await transporter.sendMail({
         ...mailOptions,
@@ -201,47 +219,72 @@ export const sendEmail = async (req, res) => {
         subject: subjectName,
         html: htmlContent,
       });
+
       recipientId.push(mailStatus.accepted);
+      rejectedEmail.push(mailStatus);
     }
+
     if (recipientId.length > 0) {
-      await emailCollection.insertOne({
-        Id: userId,
-        SentOn: date,
-        Activity: activityName,
-        SendTo: recipientMail,
-        Email: {
-          $push: {
-            subjectName,
-            messageData,
-            signatureData,
-          },
-        },
-      });
+      const userExisted = await emailCollection.findOne({ Id: userId });
+
+      if (!userExisted) {
+        await emailCollection.insertOne({
+          Id: userId,
+          SentOn: [date],
+          Activity: [activityName],
+          SendTo: [recipientMail],
+          Email: [
+            {
+              subjectName,
+              messageData,
+              signatureData,
+            },
+          ],
+        });
+      } else {
+        await emailCollection.findOneAndUpdate(
+          { Id: userId },
+          {
+            $push: {
+              SentOn: date,
+              Activity: activityName,
+              SendTo: recipientMail,
+              Email: {
+                subjectName,
+                messageData,
+                signatureData,
+              },
+            },
+          }
+        );
+      }
       return res.status(200).json({ mailSend: recipientId });
     } else {
       return res.status(400).send({ msg: "Failed to send emails" });
     }
   } catch (error) {
-    console.error(error);
     return res.status(500).send({ msg: "Internal Server Error" });
   }
 };
+
 
 //-------------Email Campaign details------------------//
 
 export const getEmailCampaignDetails = async (req, res) => {
   try {
     const { userID } = req.body;
-
-    // Check if the user exists in the contactCollection
-    const user = await contactCollection.findOne({ Id: userID });
+    const objectId = ObjectId.createFromHexString(userID);
+    // Check if the user exists in the authCollection
+    const user = await authCollection.findOne({ _id: objectId });
     if (!user) {
       return res.status(401).send({ msg: "User not found" });
     }
 
     // Find all email campaign details associated with the user ID
-    const emailCampaignDetails = await emailCollection.find({ Id: userID }).toArray();
-    
+    const emailCampaignDetails = await emailCollection
+      .find({ Id: userID })
+      .toArray();
+
     // Check if any email campaign details are found
     if (emailCampaignDetails.length > 0) {
       return res.status(200).json(emailCampaignDetails);
@@ -254,3 +297,33 @@ export const getEmailCampaignDetails = async (req, res) => {
   }
 };
 
+//-----------------Unsubscribe Email------------------//
+
+export const unsubscribeEmail = async (req, res) => {
+  const { clientmail, userId } = req.body;
+  try {
+    if (!clientmail || !userId) {
+      return res
+        .status(400)
+        .send("Invalid request. No email or user ID provided.");
+    }
+    const userEmail = await emailCollection.findOne({ Id: userId });
+    if (!userEmail) {
+      // If the user doesn't exist, create a new entry with the unsubscribed mail
+      await emailCollection.insertOne({
+        Id: userId,
+        UnsubscribedMail: [clientmail],
+      });
+    } else {
+      // If the user exists, update their UnsubscribedMail array
+      await emailCollection.updateOne(
+        { Id: userId },
+        { $addToSet: { UnsubscribedMail: clientmail } } // Using $addToSet to avoid duplicates
+      );
+    }
+    return res.status(200).send("Email unsubscribed successfully.");
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ message: error.message });
+  }
+};
