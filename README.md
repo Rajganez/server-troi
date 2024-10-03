@@ -44,33 +44,45 @@ The backend relies on the following npm packages and technologies:
 To set up and run the backend locally, follow these steps:
 
 1. Clone the repository:
+
    ```bash
-   git clone <repository-url>
+   git clone github.com/Rajganez/server-troi
+
    ```
-2. cd TrueROI-backend
-3. npm install
-4. npm run dev
 
+```bash
+cd TrueROI-backend
+npm install
+npm run dev
 ```
 
-```
-# MongoDB Connection URI
+## MongoDB Connection URI
+
 MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/<dbname>?retryWrites=true&w=majority
 
-# JWT Secret for token generation
+## JWT Secret for token generation
+
 JWT_SECRET=<your_jwt_secret>
 
-# Email configuration for Nodemailer
+## Email configuration for Nodemailer
+
 EMAIL_USER=<your_email_user>
 EMAIL_PASS=<your_email_pass>
 
-# API Endpoints
+## API Endpoints
+
 Authentication Routes
 POST /auth/register
+
 Registers a new user with email and password.
 POST /auth/login
+
 Logs in a user and returns a JWT token.
 POST /auth/forgot-password
+
 Sends a password reset email with a reset link.
 POST /auth/reset-password/
-Resets the user password using the token sent to the email.
+
+```
+
+```
