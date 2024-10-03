@@ -143,7 +143,7 @@ const generateEmailTemplate = (
                 >
                   &copy; 2024 TrueROI. All rights reserved.
                   <br />
-                  <a href="http://localhost:5173/unsubscribe?clientmail=${recipientEmail}&userid=${userId}" 
+                  <a href="https://trueroi.netlify.app/unsubscribe?clientmail=${recipientEmail}&userid=${userId}" 
                   target="_blank" style="color: #4caf50"
                     >Unsubscribe</a
                   >

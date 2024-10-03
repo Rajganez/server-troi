@@ -166,7 +166,7 @@ export const forgotPassword = async (req, res) => {
       // Generate a password reset token or link here
       const resetToken = user._id.toString();
       // Construct the reset URL
-      const resetURL = `http:/localhost:5173/reset-password/${resetToken}`;
+      const resetURL = `https://trueroi.netlify.app/reset-password/${resetToken}`;
 
       await transporter.sendMail({
         ...mailOptions,
