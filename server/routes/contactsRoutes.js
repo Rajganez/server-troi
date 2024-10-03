@@ -12,22 +12,22 @@ import multer from "multer";
 
 const contactRouter = Router();
 
-const upload = multer({ dest: "/tmp/uploads/files" });
+// const upload = multer({ dest: "/tmp/uploads/files" });
 
 
 // Multer storage configuration with customized filename
-// const storage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     cb(null, "uploads/files"); // Specify the destination folder
-//   },
-//   filename: (req, file, cb) => {
-//     // Save the file with a timestamp and the original name
-//     cb(null, `${Date.now()}-${file.originalname}`);
-//   },
-// });
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "/tmp/uploads/files"); // Specify the destination folder
+  },
+  filename: (req, file, cb) => {
+    // Save the file with a timestamp and the original name
+    cb(null, `${Date.now()}-${file.originalname}`);
+  },
+});
 
 // Initialize multer with the customized storage configuration
-// const upload = multer({ storage: storage });
+const upload = multer({ storage: storage });
 
 // Routes
 contactRouter.post("/add", verifyToken, addContact);

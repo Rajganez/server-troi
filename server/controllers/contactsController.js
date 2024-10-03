@@ -111,16 +111,16 @@ export const uploadFile = async (req, res) => {
     if (!req.file) {
       return res.status(400).send({ msg: "No file uploaded" });
     }
-    const date = Date.now();
-    const fileDir = path.join("/uploads/files", date.toString());
-    const filename = path.join(fileDir, req.file.originalname);
-    const fspath = fs.mkdirSync(path.join("/tmp", filename), {
-      recursive: true,
-    });
+    // const date = Date.now();
+    // const fileDir = path.join("/uploads/files", date.toString());
+    // const filename = path.join(fileDir, req.file.originalname);
+    // const fspath = fs.mkdirSync(path.join("/tmp", filename), {
+    //   recursive: true,
+    // });
 
     // The file path and name of the uploaded file can be accessed via req.file
-    const filePath = fspath; // Path where the file is saved
-    // const fileName = req.file.filename; // The customized filename
+    const filePath = req.file.path; // Path where the file is saved
+    const fileName = req.file.filename; // The customized filename
     console.log(filePath);
     const uniqueData = [];
     // (Optional) If you are processing an Excel file, you can use readXlsxFile
