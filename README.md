@@ -11,7 +11,6 @@ This is the backend for the **TrueROI** application. The backend is built using 
 - [API Endpoints](#api-endpoints)
 - [File Uploads](#file-uploads)
 - [Security](#security)
-- [Error Handling](#error-handling)
 
 ## Technologies Used
 
@@ -78,11 +77,23 @@ Registers a new user with email and password.
 POST /auth/login
 
 Logs in a user and returns a JWT token.
-POST /auth/forgot-password
+POST /auth/forgot-user
 
 Sends a password reset email with a reset link.
-POST /auth/reset-password/
+POST /auth/password-reset
 
-```
+## File Uploads
 
-```
+POST /list/file-upload
+Content-Type: multipart/form-data
+Body: form-data (file: <file_to_upload>)
+
+## Security
+
+- Password Hashing: User passwords are hashed using bcrypt before being stored in the database to ensure security.
+
+- JWT Authentication: JSON Web Tokens are used to protect routes and verify user sessions.
+
+- CORS: Cross-Origin Resource Sharing is enabled for secure communication between the backend and the frontend.
+
+- Environment Variables: Sensitive data like database URIs and JWT secrets are stored securely in environment variables.
