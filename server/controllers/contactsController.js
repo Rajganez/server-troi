@@ -1,6 +1,8 @@
 import { db } from "../DB/mongo-db.js";
 import dotenv from "dotenv";
 import readXlsxFile from "read-excel-file/node";
+import fs from "fs";
+import path from "path";
 
 dotenv.config();
 
@@ -109,9 +111,17 @@ export const uploadFile = async (req, res) => {
     if (!req.file) {
       return res.status(400).send({ msg: "No file uploaded" });
     }
+    const date = Date.now();
+    const fileDir = path.join("/uploads/files", date.toString());
+    const filename = path.join(fileDir, req.file.originalname);
+    const fspath = fs.mkdirSync(path.join("/tmp", filename), {
+      recursive: true,
+    });
+
     // The file path and name of the uploaded file can be accessed via req.file
-    const filePath = req.file.path; // Path where the file is saved
-    const fileName = req.file.filename; // The customized filename
+    const filePath = fspath; // Path where the file is saved
+    // const fileName = req.file.filename; // The customized filename
+
     const uniqueData = [];
     // (Optional) If you are processing an Excel file, you can use readXlsxFile
     await readXlsxFile(filePath).then((rows) => {
@@ -248,4 +258,3 @@ export const deleteSingleData = async (req, res) => {
     return res.status(500).send({ msg: "Internal Server Error", error });
   }
 };
-

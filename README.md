@@ -61,8 +61,6 @@ MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/<dbname>?retry
 JWT_SECRET=<your_jwt_secret>
 
 # Email configuration for Nodemailer
-EMAIL_HOST=smtp.mailtrap.io
-EMAIL_PORT=2525
 EMAIL_USER=<your_email_user>
 EMAIL_PASS=<your_email_pass>
 
