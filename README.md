@@ -51,7 +51,7 @@ To set up and run the backend locally, follow these steps:
    ```
 
 ```bash
-cd TrueROI-backend
+cd server-troi
 npm install
 npm run dev
 ```
