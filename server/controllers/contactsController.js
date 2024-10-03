@@ -121,7 +121,7 @@ export const uploadFile = async (req, res) => {
     // The file path and name of the uploaded file can be accessed via req.file
     const filePath = fspath; // Path where the file is saved
     // const fileName = req.file.filename; // The customized filename
-
+    console.log(filePath);
     const uniqueData = [];
     // (Optional) If you are processing an Excel file, you can use readXlsxFile
     await readXlsxFile(filePath).then((rows) => {
@@ -192,6 +192,7 @@ export const uploadFile = async (req, res) => {
       }
     }
   } catch (error) {
+    console.log(error);
     return res.status(500).send({ msg: "Internal Server Error", error });
   }
 };
